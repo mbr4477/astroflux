@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito&display=swap');
+body {
+    font-family: 'Nunito', sans-serif;
+}
+button {
+    padding: 10px 20px;
+    border-color: #a4c2f4;
+    border-width: 2px;
+    border-radius: 50px;
+    background: none;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1em;
+    color: #a4c2f4;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background-color: #a4c2f4;
+    color: white;
+    cursor: pointer;
+}
+
+button:focus {
+    outline: none;    
+}
+
+button:active {
+    border-style: solid;
+}

@@ -1,0 +1,8 @@
+button.titlebar-close {
+    background: none;
+    border: none;
+}
+
+.titlebar-bar {
+    -webkit-app-region: drag;
+}

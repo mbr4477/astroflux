@@ -47,7 +47,7 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         return { 
             id: a.id,
             x: width/2 + (a.x + a.y)*Math.sqrt(1 / (1 + slope*slope))*scale - size/2, 
-            y: height/2 + (a.x - a.y)*Math.sqrt(1 / (1 + 1 / (slope*slope)))*scale - size*0.8,
+            y: height/2 - (a.x - a.y)*Math.sqrt(1 / (1 + 1 / (slope*slope)))*scale - size*0.8,
             w: size,
             h: size
         }
@@ -67,13 +67,14 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         return sideLength / (maxDim | 1) * 0.4
     }
     static getDerivedStateFromProps(nextProps: AntennaVisualProps, prevState: AntennaVisualState) {
-        if (nextProps.width !== prevState.width || nextProps.height !== prevState.height) {
-            const scale = AntennaVisual.calculateScale(nextProps.width, nextProps.height, PERSPECTIVE, prevState.antennas)
+        if (nextProps.width !== prevState.width || nextProps.height !== prevState.height || nextProps.antennas !== prevState.antennas) {
+            const scale = AntennaVisual.calculateScale(nextProps.width, nextProps.height, PERSPECTIVE, nextProps.antennas)
             return { 
                 width: nextProps.width, 
                 height: nextProps.height, 
                 scale: scale,
                 antennaBounds: nextProps.antennas.map(a => AntennaVisual.mapAntennaToBounds(a, scale, PERSPECTIVE, nextProps.width, nextProps.height)),
+                antennas: nextProps.antennas
             }
         } else return null
     }

@@ -1,6 +1,7 @@
-button.titlebar-close {
+.titlebar-close {
     background: none;
     border: none;
+    -webkit-app-region: no-drag;
 }
 
 .titlebar-bar {

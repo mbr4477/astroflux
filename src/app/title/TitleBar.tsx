@@ -17,19 +17,20 @@ const TitleBar: React.FC<any> = (props) => {
             paddingTop: 4
         }}>
             <span className='titlebar-title' style={{
-                color: 'lightgrey',
+                color: 'black',
             }}>{props.title}</span>
             <FontAwesomeIcon 
+                className={'titlebar-close'}
                 icon={faTimes} 
                 style={{
                     color: '#ff3333', 
                     padding: '4px 6px',
                     position: 'absolute',
                     top: 0,
-                    right: 0
+                    right: 0,
                 }}
                 onClick={() => {
-                    remote.BrowserWindow.getFocusedWindow()?.close()
+                    remote.getCurrentWindow().close()
                 }}/>
     </div>
 }

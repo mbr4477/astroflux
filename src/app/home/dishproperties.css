@@ -1,0 +1,19 @@
+table.dishprops td {
+    text-align: left;
+}
+
+table.dishprops td input {
+    padding: 5px 5px;
+    border-radius: 5px;
+    border-style: solid;
+    border-color: #eee;
+    border-width: 1px;
+    font-family: 'Nunito', sans-serif;
+    text-align: right;
+    font-size: 0.75em;
+    width: 80px
+}
+
+table.dishprops td input:focus {
+    outline: none;
+}

@@ -15,7 +15,8 @@ function createWindow() {
         webPreferences: {
             // enable node integration for the browser so we
             // can do node things like use the file system
-            nodeIntegration: true
+            nodeIntegration: true,
+            webSecurity: false
         }
     });
 
@@ -34,10 +35,10 @@ function createWindow() {
     if (process.platform === 'darwin') {
         Menu.setApplicationMenu(Menu.buildFromTemplate([
             {
-                label: "EaRTH",
+                label: "Astroflux",
                 submenu: [
                     {
-                        label: "Quit EaRTH",
+                        label: "Quit Astroflux",
                         role: "quit"
                     }
                 ]

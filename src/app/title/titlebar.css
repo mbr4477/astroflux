@@ -1,7 +1,20 @@
-.titlebar-close {
+a.titlebar-close {
     background: none;
     border: none;
     -webkit-app-region: no-drag;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+a.titlebar-close:hover {
+    background-color: rgba(0,0,0,0.1);
+    cursor: pointer;
 }
 
 .titlebar-bar {

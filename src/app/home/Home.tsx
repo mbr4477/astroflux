@@ -28,9 +28,15 @@ class Home extends React.Component<any, any> {
     }
     render() {
         return (<div style={{
-            textAlign: 'center'
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh'
             }}>
-            <AntennaVisual 
+            <div style={{ flex: '1 0' }}></div>
+            <div style={{ flex: '0 0' }} >
+                <AntennaVisual 
                 antennas={this.state.antennas} 
                 width={this.state.width*0.75} 
                 height={this.state.height*0.75}
@@ -38,7 +44,9 @@ class Home extends React.Component<any, any> {
                     const antennaIndex = this.state.antennas.map((a: AntennaModel) => a.id === bounds.id).indexOf(true)
                     this.setState({ focusedAntennaBounds: bounds, focusedAntenna: this.state.antennas[antennaIndex] })
                 }}/> 
-            <div>
+            </div>
+            <div style={{ flex: '1 0' }}></div>
+            <div style={{ flex: '0 0', marginBottom: 20 }}>
                 <button onClick={() => {
                     const existing = this.state.antennas.slice()
                     const newDish = JSON.parse(DEFAULT_DISH_JSON)

@@ -198,13 +198,14 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         )
     }
     drawLabels(ctx: CanvasRenderingContext2D) {
+        const labelOffset = 30
         const start = [
             this.state.width/2,
-            this.state.height/2 + this.state.width * this.state.perspective/2 + DEPTH + 50
+            this.state.height/2 + this.state.width * this.state.perspective/2 + DEPTH + labelOffset
         ]
         const end = [
             this.state.width,
-            this.state.height/2 + DEPTH + 50
+            this.state.height/2 + DEPTH + labelOffset
         ]
         ctx.strokeStyle = '#ccc'
         ctx.lineWidth = 2
@@ -218,7 +219,7 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         ctx.stroke()
         ctx.font = "20px 'Nunito'"
         const textX = this.state.width/2 + this.state.width/2 * 0.5
-        const textY = this.state.height/2 + this.state.width * this.state.perspective/2 + DEPTH + 50 - this.state.width * this.state.perspective/2 * 0.5
+        const textY = this.state.height/2 + this.state.width * this.state.perspective/2 + DEPTH + labelOffset - this.state.width * this.state.perspective/2 * 0.5
         const text = this.state.sideLength + ' m'
         const dim = ctx.measureText(text)
         ctx.fillStyle = '#ccc'

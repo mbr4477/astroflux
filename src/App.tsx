@@ -10,7 +10,7 @@ class App extends React.Component<any, any> {
         return (
             <>
                 <Home/>
-                <TitleBar title={'AstrofluxJS'}/>
+                <TitleBar title={'Astroflux'}/>
             </>
         )
     }

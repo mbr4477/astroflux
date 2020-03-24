@@ -5,7 +5,7 @@ import './index.css'
 
 // create a root element to hold our app layout
 const root = document.createElement('div');
-root.style.height = '100%'; // make the root element fill the screen
+root.style.minHeight = '100%'; // make the root element fill the screen
 document.body.appendChild(root);
 
 // create a render function to keep the ReactDOM call in one place 

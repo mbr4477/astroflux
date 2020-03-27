@@ -217,28 +217,6 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
     }
     drawAntenna(ctx: CanvasRenderingContext2D, bounds: AntennaBounds)  {
         const image = this.refs.antennaimg as HTMLImageElement
-        if (this.state.animating) {
-            const offset = Date.now() % 1000 / 1000.0;
-            ctx.beginPath();
-            ctx.setLineDash([2, 20]);
-            ctx.lineDashOffset = offset * -22 * 8;
-            // ctx.lineWidth = 2;
-            // ctx.strokeStyle = '#0005';
-            // for (let i = 0; i < bounds.y+bounds.h/6; i++) {
-            //     const x = bounds.x + bounds.w/2 + 10*Math.sin(2*Math.PI*i/40.0 - 2*Math.PI*offset*0.5);
-            //     if (i == 0) {
-            //         ctx.moveTo(x, i)
-            //     } else {
-            //         ctx.lineTo(x, i)
-            //     }
-            // }
-            ctx.strokeStyle = '#00f'
-            ctx.lineWidth = 40
-            ctx.moveTo(bounds.x + bounds.w/2, 0)
-            ctx.lineTo(bounds.x + bounds.w/2, bounds.y + bounds.h/4)
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
         ctx.drawImage(
             image, 
             bounds.x,
@@ -246,6 +224,23 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
             bounds.w,
             bounds.h
         )
+        if (this.state.animating) {
+            const radius = 80
+            const angle = Math.PI / 4
+            const spacing = 40
+            const offset = Date.now() % 1000 / 1000.0;
+            ctx.strokeStyle = '#00f'
+            ctx.beginPath();
+            ctx.lineWidth = 2;
+            for (let i = 4*spacing*(offset - 1); i < bounds.y+bounds.h/4; i+=spacing) {
+                ctx.beginPath()
+                ctx.strokeStyle = 'rgba(0,0,255,' + Math.min(1, i/bounds.y) + ')'
+                ctx.arc(bounds.x + bounds.w/2, i - radius, radius, Math.PI/2 - angle/2, Math.PI/2 + angle/2)
+                ctx.stroke()
+            }
+            ctx.stroke();
+        }
+        
     }
     drawLabels(ctx: CanvasRenderingContext2D) {
         const labelOffset = 30

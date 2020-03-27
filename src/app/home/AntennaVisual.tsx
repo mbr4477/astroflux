@@ -19,6 +19,7 @@ interface AntennaVisualProps {
     antennas: AntennaModel[],
     width: number,
     height: number,
+    animating: boolean,
     onClick: (bounds: AntennaBounds) => void
 }
 interface AntennaVisualState extends AntennaVisualProps {
@@ -42,9 +43,12 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
             depth: DEPTH,
             scale: scale[0],
             sideLength: scale[1],
+            animating: props.animating,
             onClick: props.onClick
         }
         this.clickHandler = this.clickHandler.bind(this)
+        this.draw = this.draw.bind(this)
+        
     }
     static projectPoint(x: number, y: number, width: number, height: number, slope: number, scale: number) {
         return { 
@@ -71,7 +75,7 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
     ): number[] {
         const maxX = Math.max(...antennas.map(a => Math.abs(a.x)))
         const maxY = Math.max(...antennas.map(a => Math.abs(a.y)))
-        const maxDim = Math.max(0.5, Math.ceil(Math.max(maxX, maxY) / 2.5) * 2.5)*2
+        const maxDim = Math.max(2.5, Math.ceil(Math.max(maxX, maxY) / 2.5) * 2.5)*2
         const dx = width/2
         const dy = width/2 * perspective
         const sideLength = Math.sqrt(dx*dx + dy*dy)
@@ -79,29 +83,20 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         return [scale, maxDim]
     }
     static getDerivedStateFromProps(nextProps: AntennaVisualProps, prevState: AntennaVisualState) {
-        if (nextProps.width !== prevState.width || nextProps.height !== prevState.height || nextProps.antennas !== prevState.antennas) {
-            const scale = AntennaVisual.calculateScale(nextProps.width, nextProps.height, PERSPECTIVE, nextProps.antennas)
-            return { 
-                width: nextProps.width, 
-                height: nextProps.height, 
-                scale: scale[0],
-                sideLength: scale[1],
-                antennaBounds: nextProps.antennas.map(a => AntennaVisual.mapAntennaToBounds(a, scale[0], PERSPECTIVE, nextProps.width, nextProps.height)),
-                antennas: nextProps.antennas
-            }
-        } else return null
+        const scale = AntennaVisual.calculateScale(nextProps.width, nextProps.height, PERSPECTIVE, nextProps.antennas)
+        return { 
+            width: nextProps.width, 
+            height: nextProps.height, 
+            scale: scale[0],
+            sideLength: scale[1],
+            antennaBounds: nextProps.antennas.map(a => AntennaVisual.mapAntennaToBounds(a, scale[0], PERSPECTIVE, nextProps.width, nextProps.height)),
+            antennas: nextProps.antennas,
+            animating: nextProps.animating
+        }
     }
     componentDidUpdate() {
         // redraw the canvas
-        const canvas = this.refs.canvas as HTMLCanvasElement
-        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
-        canvas.width = this.state.width
-        canvas.height = this.state.height
-        ctx.imageSmoothingEnabled = false
-        ctx.clearRect(0, 0, this.state.width, this.state.height)
-        this.drawGround(ctx)
-        this.drawAntennas(ctx)
-        this.drawLabels(ctx)
+        this.draw()
     }
     componentDidMount() {
         (this.refs.canvas as HTMLCanvasElement).addEventListener('click', this.clickHandler)
@@ -125,6 +120,23 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
                 h: bounds.h
             }
             if (this.state.onClick) this.state.onClick(clientBounds)
+        }
+    }
+    draw() {
+        const canvas = this.refs.canvas as HTMLCanvasElement
+        if (canvas !== undefined) {
+            const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+            canvas.width = this.state.width
+            canvas.height = this.state.height
+            ctx.imageSmoothingEnabled = false
+            ctx.clearRect(0, 0, this.state.width, this.state.height)
+            this.drawGround(ctx)
+            this.drawBaselines(ctx)
+            this.drawAntennas(ctx)
+            this.drawLabels(ctx)
+        }
+        if (this.state.animating) {
+            requestAnimationFrame(this.draw)
         }
     }
     drawGround(ctx: CanvasRenderingContext2D) {
@@ -185,11 +197,48 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         ctx.stroke()
 
     }
+    drawBaselines(ctx: CanvasRenderingContext2D) {
+        ctx.strokeStyle = '#040'
+        ctx.lineWidth = 2
+        const points = this.state.antennas.map( (a: AntennaModel) => {
+            return AntennaVisual.projectPoint(a.x, a.y, this.state.width, this.state.height, this.state.perspective, this.state.scale)
+        })
+        ctx.beginPath()
+        points.forEach((p) => {
+            points.forEach((end) => {
+                ctx.moveTo(p.x, p.y)
+                ctx.lineTo(end.x, end.y)
+            })
+        })
+        ctx.stroke()
+    }
     drawAntennas(ctx: CanvasRenderingContext2D) {
         this.state.antennaBounds.map((a: AntennaBounds) => this.drawAntenna(ctx, a))
     }
     drawAntenna(ctx: CanvasRenderingContext2D, bounds: AntennaBounds)  {
         const image = this.refs.antennaimg as HTMLImageElement
+        if (this.state.animating) {
+            const offset = Date.now() % 1000 / 1000.0;
+            ctx.beginPath();
+            ctx.setLineDash([2, 20]);
+            ctx.lineDashOffset = offset * -22 * 8;
+            // ctx.lineWidth = 2;
+            // ctx.strokeStyle = '#0005';
+            // for (let i = 0; i < bounds.y+bounds.h/6; i++) {
+            //     const x = bounds.x + bounds.w/2 + 10*Math.sin(2*Math.PI*i/40.0 - 2*Math.PI*offset*0.5);
+            //     if (i == 0) {
+            //         ctx.moveTo(x, i)
+            //     } else {
+            //         ctx.lineTo(x, i)
+            //     }
+            // }
+            ctx.strokeStyle = '#00f'
+            ctx.lineWidth = 40
+            ctx.moveTo(bounds.x + bounds.w/2, 0)
+            ctx.lineTo(bounds.x + bounds.w/2, bounds.y + bounds.h/4)
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
         ctx.drawImage(
             image, 
             bounds.x,

@@ -5,7 +5,7 @@ import AntennaModel from '../../model/AntennaModel';
 import DishProperties from './DishProperties';
 import DishAntenna from '../../model/DishAntenna';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSave, faSatelliteDish } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faSave, faSatelliteDish, faFolderOpen as faOpen} from '@fortawesome/free-solid-svg-icons'
 
 const DEFAULT_DISH_JSON = JSON.stringify({ id: '0', x: 0, y: 0, size: 1.0, wavelength: 0.21, bandwidth: 100e6, eta: 0.5, samplingRate: 25e6 })
 
@@ -13,11 +13,12 @@ class Home extends React.Component<any, any> {
     constructor(props: any) {
         super(props)
         this.state = {
-            antennas: [],
+            antennas: [JSON.parse(DEFAULT_DISH_JSON)],
             width: 0,
             height: 0,
             focusedAntenna: undefined,
-            focusedAntennaBounds: undefined
+            focusedAntennaBounds: undefined,
+            observing: false,
         }
         this.updateWindowDims = this.updateWindowDims.bind(this)
     }
@@ -41,7 +42,8 @@ class Home extends React.Component<any, any> {
                 <AntennaVisual 
                 antennas={this.state.antennas} 
                 width={this.state.width*0.75} 
-                height={this.state.height*0.75}
+                height={this.state.height*0.8}
+                animating={this.state.observing}
                 onClick={(bounds: AntennaBounds) => {
                     const antennaIndex = this.state.antennas.map((a: AntennaModel) => a.id === bounds.id).indexOf(true)
                     this.setState({ focusedAntennaBounds: bounds, focusedAntenna: this.state.antennas[antennaIndex] })
@@ -49,7 +51,13 @@ class Home extends React.Component<any, any> {
             </div>
             <div style={{ flex: '1 0' }}></div>
             <div style={{ flex: '0 0', marginBottom: 20, display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly', width: '100vw'}}>
-                <button><FontAwesomeIcon icon={faSatelliteDish}/> Observe</button>                 
+                <div>
+                    <button style={{ border: 'none' }}><FontAwesomeIcon icon={faSave}/></button>
+                    <button style={{ border: 'none' }}><FontAwesomeIcon icon={faOpen}/></button>
+                </div>
+                <button onClick={() => {
+                    this.setState({ observing: !this.state.observing })
+                }}><FontAwesomeIcon icon={faSatelliteDish}/> Observe</button>                 
                 <button onClick={() => {
                     const existing = this.state.antennas.slice()
                     const newDish = JSON.parse(DEFAULT_DISH_JSON)
@@ -58,7 +66,7 @@ class Home extends React.Component<any, any> {
                     existing.push(newDish)
                     this.setState({ antennas: existing })
                 }}><FontAwesomeIcon icon={faPlus}/> Antenna</button>   
-                <button style={{ border: 'none' }}><FontAwesomeIcon icon={faSave}/> Save Array</button>
+
             </div>
             {
                 (this.state.focusedAntenna && this.state.focusedAntennaBounds) ? 

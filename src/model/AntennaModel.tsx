@@ -2,7 +2,7 @@ interface AntennaModel {
     id: string,
     x: number,
     y: number,
-    scale: number,
+    size: number,
 }
 
 export default AntennaModel

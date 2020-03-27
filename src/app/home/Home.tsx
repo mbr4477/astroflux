@@ -4,8 +4,10 @@ import './home.css'
 import AntennaModel from '../../model/AntennaModel';
 import DishProperties from './DishProperties';
 import DishAntenna from '../../model/DishAntenna';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons'
 
-const DEFAULT_DISH_JSON = JSON.stringify({ id: '0', x: 0, y: 0, scale: 1.0, diameter: 3.0, wavelength: 0.21, bandwidth: 100e6, eta: 0.5 })
+const DEFAULT_DISH_JSON = JSON.stringify({ id: '0', x: 0, y: 0, size: 1.0, wavelength: 0.21, bandwidth: 100e6, eta: 0.5, samplingRate: 25e6 })
 
 class Home extends React.Component<any, any> {
     constructor(props: any) {
@@ -54,7 +56,8 @@ class Home extends React.Component<any, any> {
                     newDish.id = (lastDishId + 1).toString()
                     existing.push(newDish)
                     this.setState({ antennas: existing })
-                }}>Add Antenna</button>                    
+                }}>Add Antenna</button>   
+                <button><FontAwesomeIcon icon={faPlus} /> Observation</button>                 
             </div>
             {
                 (this.state.focusedAntenna && this.state.focusedAntennaBounds) ? 

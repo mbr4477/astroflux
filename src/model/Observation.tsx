@@ -4,7 +4,9 @@ import ObservationTarget from "./ObservationTarget";
 interface Observation {
     target: ObservationTarget,
     antennas: AntennaModel[],
-    duration: number
+    timestamp: string,
+    duration: number,
+    latitude: number,
 }
 
 export default Observation

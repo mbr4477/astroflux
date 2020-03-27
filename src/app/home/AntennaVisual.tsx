@@ -10,7 +10,8 @@ export interface AntennaBounds {
     h: number
 }
 
-const ANTENNA_BASE_SIZE = 64
+const ANTENNA_MIN_SIZE = 64
+const ANTENNA_MAX_SIZE = 512
 const PERSPECTIVE = 0.4
 const DEPTH = 10
 
@@ -52,7 +53,7 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         }
     }
     static mapAntennaToBounds(a: AntennaModel, scale: number, slope: number, width: number, height: number): AntennaBounds {
-        const size = ANTENNA_BASE_SIZE * a.scale
+        const size = Math.min(ANTENNA_MAX_SIZE, Math.max(a.size * scale, ANTENNA_MIN_SIZE))
         const projected = AntennaVisual.projectPoint(a.x, a.y, width, height, slope, scale)
         return { 
             id: a.id,

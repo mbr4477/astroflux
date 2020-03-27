@@ -35,9 +35,10 @@ const DishProperties: React.FC<DishPropertiesProps> = (props: DishPropertiesProp
             <tbody>
                 <tr><td>X (m)</td><td><input type='text' defaultValue={dish.x} onChange={(e) => dish.x = parseFloat(e.target.value) || 0}/></td></tr>
                 <tr><td>Y (m)</td><td><input type='text' defaultValue={dish.y} onChange={(e) => dish.y = parseFloat(e.target.value) || 0}/></td></tr>
-                <tr><td>Diameter (m)</td><td><input type='text' defaultValue={dish.diameter} onChange={(e) => dish.diameter = parseFloat(e.target.value) || 0}/></td></tr>
+                <tr><td>Diameter (m)</td><td><input type='text' defaultValue={dish.size} onChange={(e) => dish.size = parseFloat(e.target.value) || 0}/></td></tr>
                 <tr><td>Wavelength (m)</td><td><input type='text' defaultValue={dish.wavelength} onChange={(e) => dish.wavelength = parseFloat(e.target.value) || 0}/></td></tr>
                 <tr><td>Bandwidth (Hz)</td><td><input type='text' defaultValue={dish.bandwidth} onChange={(e) => dish.bandwidth = parseFloat(e.target.value) || 0}/></td></tr>
+                <tr><td>Sampling Rate (Hz)</td><td><input type='text' defaultValue={dish.samplingRate} onChange={(e) => dish.samplingRate = parseFloat(e.target.value) || dish.samplingRate}/></td></tr>
                 <tr><td>Efficiency</td><td><input type='text' defaultValue={dish.eta} onChange={(e) => dish.eta = parseFloat(e.target.value) || dish.eta}/></td></tr>
             </tbody>
         </table>

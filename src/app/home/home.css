@@ -3,7 +3,6 @@ body {
     font-family: 'Nunito', sans-serif;
 }
 button {
-    padding: 10px 20px;
     border: solid 2px #a4c2f4;
     border-radius: 50px;
     background: none;
@@ -11,6 +10,9 @@ button {
     font-size: 1em;
     color: #a4c2f4;
     text-transform: uppercase;
+    height: 40px;
+    overflow: hidden;
+    padding: 0px 20px;
 }
 
 button:hover {

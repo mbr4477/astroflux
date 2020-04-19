@@ -13,7 +13,7 @@ const common = {
     },
     // what file extensions are part of this config
     resolve: {
-        extensions: [ '.js', '.jsx', '.ts', '.tsx', '.png', '.jpg']
+        extensions: [ '.js', '.jsx', '.ts', '.tsx', '.png', '.jpg' ]
     },
     module: {
         // define loaders to process each type of file
@@ -28,6 +28,9 @@ const common = {
                 options: {
                     // don't use a babelrc config file -- all config is here
                     babelrc: false,
+                    plugins: [
+                        [ '@babel/plugin-proposal-class-properties' ],
+                    ],
                     presets: [
                         // babel env lets us tell babel what envrionment
                         // we want to support on compile

@@ -1,0 +1,38 @@
+.result-modal--container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.result-modal--content {
+    position: relative;
+    display: inline-block;
+    width: 80vw;
+    height: 80vh;
+    background-color: white;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.result-modal--content--scroll {
+    text-align: center;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+.result-modal--content img {
+    flex: 0 0;
+    width: 80vh;
+}
+
+.result-modal--content .dismiss-button {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+}

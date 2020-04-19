@@ -2,3 +2,9 @@ node_modules/
 dist/
 package-lock.json
 build/
+*.fits
+__pycache__/
+.cph_tmpaneichln/
+.cph_tmpp_5px9yr/
+.vscode/
+*.aflux

@@ -199,7 +199,7 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
     }
     drawBaselines(ctx: CanvasRenderingContext2D) {
         ctx.strokeStyle = '#040'
-        ctx.lineWidth = 2
+        ctx.lineWidth = 1
         const points = this.state.antennas.map( (a: AntennaModel) => {
             return AntennaVisual.projectPoint(a.x, a.y, this.state.width, this.state.height, this.state.perspective, this.state.scale)
         })
@@ -213,7 +213,9 @@ export class AntennaVisual extends React.Component<AntennaVisualProps, AntennaVi
         ctx.stroke()
     }
     drawAntennas(ctx: CanvasRenderingContext2D) {
-        this.state.antennaBounds.map((a: AntennaBounds) => this.drawAntenna(ctx, a))
+        this.state.antennaBounds
+            .sort((a,b) => a.y - b.y)
+            .map((a: AntennaBounds) => this.drawAntenna(ctx, a))
     }
     drawAntenna(ctx: CanvasRenderingContext2D, bounds: AntennaBounds)  {
         const image = this.refs.antennaimg as HTMLImageElement

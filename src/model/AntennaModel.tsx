@@ -3,6 +3,7 @@ interface AntennaModel {
     x: number,
     y: number,
     size: number,
+    eta: number,
 }
 
 export default AntennaModel

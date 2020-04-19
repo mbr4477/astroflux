@@ -6,7 +6,11 @@ interface Observation {
     antennas: AntennaModel[],
     timestamp: string,
     duration: number,
+    longitude: number,
     latitude: number,
+    wavelength: number,
+    samplingRate: number,
+    bandwidth: number
 }
 
 export default Observation

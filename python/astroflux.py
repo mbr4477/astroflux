@@ -20,6 +20,8 @@ def main():
     parser.add_argument('--json', type=str, help='JSON input string')
     parser.add_argument('--file', type=str, help='path to observation JSON input file')
     parser.add_argument('--duration', type=float, help='observation duration in hours')
+    parser.add_argument('--samples', type=int, help='number of samples per short term interval')
+    parser.add_argument('--snr', type=float, help='SNR of antenna signals')
     parser.add_argument('--fast', action='store_true', help='simulate all antennas with the parameters')
     parser.add_argument('--spiral', metavar='RADIUS', type=float, help='generate spiral array with this max radius in meters')
     parser.add_argument('--random', metavar='RADIUS', type=float, help='generate random array positions on this order')
@@ -121,7 +123,9 @@ def main():
                 beamwidths[0],
                 wavelength, 
                 skymap,
-                samples_per_dim=image_size
+                samples_per_dim=image_size,
+                snr=args.snr,
+                samples=args.samples if args.samples else 1
             )
         else:
             for (axy, bw, eta) in zip(current_xy, beamwidths, antenna_eta):
@@ -132,7 +136,9 @@ def main():
                     bw,
                     wavelength, 
                     skymap,
-                    samples_per_dim=image_size
+                    samples_per_dim=image_size,
+                    snr=args.snr,
+                    samples=args.samples if args.samples else 1
                 )
                 signals.append(rx)
             signals = np.stack(signals, axis=0)
@@ -164,6 +170,27 @@ def main():
     iters = 1000
     cleaned = aflux.clean(image, all_uv, np.amax(beamwidths), synthetic_bw, iters, lmbda)
     image = np.abs(image)
+
+    # ---- COMPARISON ---- #
+    # compare_size = image_size
+    # uv_image = np.zeros((compare_size, compare_size))
+    # max_dim = np.amax(np.abs(all_uv))
+    # for i in range(all_uv.shape[0]):
+    #     pos = (all_uv[i,:]/max_dim * compare_size/2)
+    #     uv_image[int(compare_size/2 - pos[1] - 1), int(pos[0] + compare_size/2) - 1] += 1.0
+    # plt.figure(2, figsize=(8,8))
+    # plt.subplot(221)
+    # plt.imshow(uv_image, cmap='Greys')
+    # db = np.fft.fft2(uv_image)
+    # plt.subplot(222)
+    # plt.imshow(np.abs(np.fft.fftshift(db)), cmap='gray')
+    # di = np.fft.ifft2(uv_image * np.fft.fftshift(np.fft.fft2(pixeldata.reshape(image_size, image_size))))
+    # plt.subplot(223)
+    # plt.imshow(np.abs(di), cmap='gray')
+    # clnd = aflux.clean(di, all_uv, np.amax(beamwidths), synthetic_bw, iters, lmbda)
+    # plt.subplot(224)
+    # plt.imshow(np.abs(clnd), cmap='gray')
+    # -------------------- #
     
     if args.dump:
         outdir = tempfile.gettempdir()

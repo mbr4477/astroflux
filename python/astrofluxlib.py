@@ -128,57 +128,6 @@ class Observation(object):
             self.timestamp
         )
 
-def simulate(observation, axy, beamwidth, wavelength, skymap, samples_per_dim=64):
-    """
-    Parameters
-    ----------
-    observation : Observation
-        `Observation` object
-
-    axy : ndarray
-        Jx2 array of antenna (x,y) positions
-
-    beamwidth : float
-        antenna beamwidth in degrees
-
-    wavelength : float
-        wavelength in meters
-
-    skymap : SkyMap
-        `SkyMap` object
-
-    samples_per_dim : int
-        samples per dim of alt/az grid
-
-    Returns
-    -------
-    signals : ndarray   
-        a JxM matrix of noiseless stacked antenna signals from the skymap
-
-    pixeldata : ndarray
-        samples_per_dim^2 length vector of pixel values
-    """
-    target_alt_az = observation.alt_az().squeeze()
-    alt_az_samples = generate_alt_az_samples(
-        beamwidth, 
-        target_alt_az[0], 
-        target_alt_az[1], 
-        samples_per_dim
-    )
-    ra_dec_samples = convert_alt_az_to_ra_dec(
-        alt_az_samples, 
-        observation.lat, 
-        observation.lon, 
-        observation.timestamp
-    )
-    pixeldata = skymap.get_temp_mk(ra_dec_samples)
-    beamsamples = create_antenna_beam_lm_samples(
-        beamwidth, 
-        samples_per_dim=samples_per_dim
-    )
-    rx = generate_antenna_signals(axy, beamsamples, pixeldata, wavelength)
-    return rx, pixeldata
-
 def parabolic_beamwidth(dishsize, wavelength, degrees=False):
     """
     Calculate the beamwidth of a parabolic dish.
@@ -201,25 +150,6 @@ def parabolic_beamwidth(dishsize, wavelength, degrees=False):
     """
     beamwidth = wavelength / dishsize
     return beamwidth if not degrees else beamwidth / np.pi * 180
-
-def create_antenna_beam_lm_samples(beamwidth_deg, samples_per_dim):
-    """
-    Parameters
-    ----------
-    beamwidth_deg : float
-        beamwidth of the antenna in degrees
-
-    Returns
-    -------
-    lm_grid_samples : ndarray
-        samples_per_dim^2 x 2 matrix of (l,m) direction cosine 
-        pairs for the given beamwidth
-    """
-    l = np.arange(-0.5, 0.5, 1/samples_per_dim) * beamwidth_deg / 90
-    m = l.copy()
-    L,M = np.meshgrid(l,m)
-    lm = np.stack((L.reshape(-1), M.reshape(-1)), axis=1)
-    return lm
 
 def generate_alt_az_samples(beamwidth_deg, alt, az, samples_per_dim):
     """
@@ -301,7 +231,27 @@ def convert_ra_dec_to_alt_az(ra_dec_samples, lat, lon, timestamp):
     aa = c.transform_to(AltAz(obstime=Time(timestamp), location=location))
     return np.array([aa.alt.degree, aa.az.degree]).T
 
-def generate_antenna_signals(antenna_xy, antenna_beam_lm_samples, pixelvalues, wavelength):
+def create_antenna_beam_lm_samples(beamwidth_deg, samples_per_dim):
+    """
+    Parameters
+    ----------
+    beamwidth_deg : float
+        beamwidth of the antenna in degrees
+
+    Returns
+    -------
+    lm_grid_samples : ndarray
+        samples_per_dim^2 x 2 matrix of (l,m) direction cosine 
+        pairs for the given beamwidth
+    """
+    l = np.arange(-0.5, 0.5, 1/samples_per_dim) * beamwidth_deg / 90
+    m = l.copy()
+    L,M = np.meshgrid(l,m)
+    lm = np.stack((L.reshape(-1), M.reshape(-1)), axis=1)
+    return lm
+
+
+def generate_antenna_signals(antenna_xy, antenna_beam_lm_samples, pixelvalues, wavelength, snr=None, samples=1):
     """ 
     Parameters
     ----------
@@ -310,38 +260,42 @@ def generate_antenna_signals(antenna_xy, antenna_beam_lm_samples, pixelvalues, w
 
     antenna_beam_lm_samples : ndarray
         N^2 x 2 matrix of sampled direction cosine 
-        lm grid points for individual dish beam OR an J-length tuple of 
-        separate lm samples for each antenna
+        lm grid points for individual dish beam
 
     pixelvalues : ndarray
         N^2 x 1 matrix of pixel values corresponding to the sampled lm plane
-        OR a J-length tuple of separate pixel values for each antenna
 
     wavelength : float
         wavelength in meters
+
+    snr : float | None
+        signal-to-noise-ratio of the sky data or None if no noise
+
+    samples : int
+        number of samples to average for this short term interval
 
     Returns
     -------
     antenna_signals : ndarray
         Jx1 vector of antenna output (assume heterodyned)
     """
-    def __compute_rx(axy, beam_samples, pxvals, wvlen):
-        phase_delays = 2*np.pi*beam_samples.dot(axy.T/wvlen) # = (N^2 x 2) * (2 x J)
-        # phase_delays.shape = (N^2, J)
-        phase_delays = np.exp(-1j * phase_delays)
-        rx = phase_delays.T.dot(pxvals) # = (J x N^2) * (N^2 x 1)
-        # rx = (J x 1)
-        rx = rx.reshape(rx.shape[0],1)
-        return rx
+    # normalize the pixel values
+    px = (pixelvalues - np.amin(pixelvalues)) / (np.amax(pixelvalues) - np.amin(pixelvalues))
+    if snr:
+        noisepower = 10**(-snr/20)
+        noisemag = np.sqrt(noisepower)
+        dynamic_range = 4*noisemag
+        offset = dynamic_range*0.5
+        withnoise = np.zeros(px.shape)
+        for i in range(samples):
+            noise = np.random.randn(px.shape[0])*noisemag
+            withnoise += np.abs(np.round((px + noise) / dynamic_range))
+        px = withnoise / samples
 
-    if type(antenna_beam_lm_samples) is not tuple and type(pixelvalues) is not tuple:
-        return __compute_rx(antenna_xy, antenna_beam_lm_samples, pixelvalues, wavelength)
-    elif type(antenna_beam_lm_samples) is tuple or type(pixelvalues) is tuple:
-        raise Exception("Both antenna_beam_lm_samples and pixels should be of the same type, a tuple or a matrix")
-    
-    rx = np.zeros(antenna_xy.shape[0])
-    for i, (beam_samples, pxvals) in enumerate(zip(antenna_beam_lm_samples, pixelvalues)):
-        rx[i] = __compute_rx(antenna_xy[i,:], beam_samples, pxvals, wavelength)
+    phase_delays = 2*np.pi*antenna_beam_lm_samples.dot(antenna_xy.T/wavelength)
+    phase_delays = np.exp(-1j * phase_delays)
+    rx = phase_delays.T.dot(px)
+    rx = rx.reshape(rx.shape[0],1)
     return rx
     
 def xcorr_signals(signals):
@@ -409,6 +363,63 @@ def to_uv(antenna_xy, wavelength):
     uv = np.stack((u,v), axis=1)
     return uv
 
+def simulate(observation, axy, beamwidth, wavelength, skymap, samples_per_dim=64, snr=None, samples=1):
+    """
+    Parameters
+    ----------
+    observation : Observation
+        `Observation` object
+
+    axy : ndarray
+        Jx2 array of antenna (x,y) positions
+
+    beamwidth : float
+        antenna beamwidth in degrees
+
+    wavelength : float
+        wavelength in meters
+
+    skymap : SkyMap
+        `SkyMap` object
+
+    samples_per_dim : int
+        samples per dim of alt/az grid
+
+    snr : float | None
+        signal to noise ratio in dB
+
+    samples : int
+        samples to use in each short-term interval
+
+    Returns
+    -------
+    signals : ndarray   
+        a JxM matrix of noiseless stacked antenna signals from the skymap
+
+    pixeldata : ndarray
+        samples_per_dim^2 length vector of pixel values
+    """
+    target_alt_az = observation.alt_az().squeeze()
+    alt_az_samples = generate_alt_az_samples(
+        beamwidth, 
+        target_alt_az[0], 
+        target_alt_az[1],
+        samples_per_dim
+    )
+    ra_dec_samples = convert_alt_az_to_ra_dec(
+        alt_az_samples, 
+        observation.lat, 
+        observation.lon, 
+        observation.timestamp
+    )
+    pixeldata = skymap.get_temp_mk(ra_dec_samples)
+    beamsamples = create_antenna_beam_lm_samples(
+        beamwidth, 
+        samples_per_dim=samples_per_dim
+    )
+    rx = generate_antenna_signals(axy, beamsamples, pixeldata, wavelength, snr, samples)
+    return rx, pixeldata
+
 def compute_dirty_image_pixels(xcorr, uv, lm):
     """
     Parameters
@@ -427,7 +438,7 @@ def compute_dirty_image_pixels(xcorr, uv, lm):
     pixelvalues : ndarray
         N^2 vector of s plane pixel values
     """
-    zdots = uv.dot(lm.T) # J^2 x 2 * 2 x N^2 = J^2 x N^2
+    zdots = uv.dot(lm.T)
     result = xcorr.reshape(1,xcorr.shape[0]).dot(np.exp(1j*2*np.pi*zdots))
     return result
 
@@ -452,7 +463,6 @@ def compute_dirty_image(uv, xcorr, imwidth, samples_per_dim):
     image : ndarray
         (samples_per_dim x samples_per_dim) dirty image
     """
-    image = np.zeros((samples_per_dim, samples_per_dim), dtype=complex)
     lm = create_antenna_beam_lm_samples(imwidth, samples_per_dim)
     image = compute_dirty_image_pixels(xcorr, uv, lm)
     return image.reshape(samples_per_dim, samples_per_dim)
@@ -476,7 +486,6 @@ def dirty_beam(uvs, beamwidth, samples_per_dim):
         samples_per_dim x samples_per_dim dirty beam
     """
     N = samples_per_dim
-    dirty = np.zeros((N,N), dtype=complex)
     dirty = compute_dirty_image(uvs, np.ones(uvs.shape[0]), beamwidth, N)
     dirty = np.abs(dirty)
     dirty /= np.amax(dirty)
@@ -534,3 +543,4 @@ def clean(image, uvs, beamwidth, synthetic_bw, iters=100, lmbda=0.1):
     im = convolve2d(point_sources_map, gaussian_beam, mode='same')
 
     return np.abs(im)
+

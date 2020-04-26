@@ -5,6 +5,9 @@
 An Electron + React frontend and Python backend for simulating radio telescope interferometry.
 ![screenshot](screenshot.png)
 
+## Example Output
+![example](example.png)
+
 ## Building & Running
 Use `$ npm run build` to build and then `$ npm run start` to open the distribution app window.
 
